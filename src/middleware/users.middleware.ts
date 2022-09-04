@@ -55,6 +55,43 @@ const validateSignUp = async (
   next();
 };
 
+const validateLogin = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { username, password } = req.body;
 
+  if (!username || !password) {
+    res.status(401).json({
+      status: "Failed",
+      message: "Please enter both fields",
+    });
+    return;
+  }
 
-export { validateSignUp, generateToken};
+  const user = await Users.findOne({ username });
+
+  if (!user) {
+    res.status(401).json({
+      status: "Failed",
+      message: "Username or password incorrect",
+    });
+    return;
+  }
+
+  if (user) {
+    const verifyPassword = await bcrypt.compare(password, user?.password);
+    if (!verifyPassword) {
+      res.status(401).json({
+        status: "Failed",
+        message: "Username or password incorrect",
+      });
+      return;
+    } else if (verifyPassword) {
+      next();
+    }
+  }
+};
+
+export { validateSignUp, generateToken, validateLogin };

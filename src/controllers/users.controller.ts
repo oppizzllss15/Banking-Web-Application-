@@ -1,7 +1,25 @@
-import { verify } from "crypto";
 import express, { Request, Response, NextFunction } from "express";
-import { generateToken } from "../middleware/users.middleware";
 import Users from "../models/users.model";
+import jwt from "jsonwebtoken";
+
+const generateToken = (id: Object) => {
+  if (process.env.SECRET_KEY) {
+    const token = jwt.sign({ id }, process.env.SECRET_KEY, {
+      expiresIn: process.env.EXPIRES_IN,
+    });
+    return token;
+  }
+};
+
+const generateAccountNumber = (length: number) => {
+  let num = "";
+  for (let i = 0; i < length; i++) {
+    num = num += parseInt((Math.random() * 10).toString());
+  }
+
+  const number = Number(num);
+  return number;
+};
 
 const registerUser = async (req: Request, res: Response) => {
   try {
@@ -9,11 +27,8 @@ const registerUser = async (req: Request, res: Response) => {
 
     const newUser = await Users.create(req.body);
 
-    const token = generateToken(newUser.username, newUser);
-
     res.status(201).json({
       status: "successful",
-      token,
       message: `User with username: ${username} successfully created`,
       data: {
         newUser,
@@ -29,10 +44,12 @@ const registerUser = async (req: Request, res: Response) => {
 const userLogin = async (req: Request, res: Response) => {
   try {
     const { username } = req.body;
-    const user = await Users.findOne({ username });
-    if (user) {
-      const token = generateToken(username, user);
 
+    const user = await Users.findOne({ username }, { password: 0 });
+
+    if (user) {
+      const token = generateToken(user._id);
+      res.cookie("Id", user._id);
       res.status(200).json({
         status: "Successful",
         token,
@@ -45,6 +62,26 @@ const userLogin = async (req: Request, res: Response) => {
   }
 };
 
+const userLogout = async (req: Request, res: Response) => {
+  let token = "";
+  res.cookie("Id", "");
+  res.status(200).json({
+    status: "Successful",
+    message: "Successfully logged out",
+  });
+};
 
+const createAccountNumber = (req: Request, res: Response) => {
+  const accountNumber = generateAccountNumber(10);
+  console.log(accountNumber);
+  res.status(201).json({
+    status: "Successful",
+    message: "Account successfuly created",
+    data: {
+      accountNumber,
+    },
+  });
+  return;
+};
 
-export { registerUser, userLogin };
+export { registerUser, userLogin, createAccountNumber, userLogout };

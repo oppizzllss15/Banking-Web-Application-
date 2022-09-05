@@ -1,5 +1,5 @@
 const validator = require("validator");
-import bcrpyt from "bcryptjs";
+import bcrypt from "bcryptjs";
 import Users from "mongoose";
 
 const userData = new Users.Schema(
@@ -30,7 +30,7 @@ const userData = new Users.Schema(
       unique: true,
     },
     "Date of Birth": {
-      type: String,
+      type: Date,
       required: [true, "please enter your date of birth"],
     },
     address: {
@@ -55,28 +55,44 @@ const userData = new Users.Schema(
       type: String,
       required: true,
     },
+    passwordChanged: {
+      type: Date,
+    },
   },
   {
     timestamps: true,
   }
 );
 
+// document middleware pre hook to hash password
 userData.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
 
-  this.password = await bcrpyt.hash(this.password, 12);
+  this.password = await bcrypt.hash(this.password, 12);
 
   this["confirm password"] = undefined;
   next();
 });
 
-// instance methods
-// userData.methods.checkPassword = function (
-//   enteredPasswored: string,
-//   storedPassword: string
-// ) {
-//   return enteredPasswored === storedPassword;
-// };
+// instance method to compare passwords
+userData.methods.checkPassword = async function (
+  enteredPasswored: string,
+  storedPassword: string
+) {
+  return await bcrypt.compare(enteredPasswored, storedPassword);
+};
+
+// instance method checking if password changed time stamps
+userData.methods.changedPassword = function (JWTTimestamp: number) {
+  if (this.passwordChanged) {
+    const initialTS = Number(this.passwordChanged.getTime());
+
+    const changedTimestamp = initialTS / 1000;
+
+    return JWTTimestamp < changedTimestamp;
+  }
+  return false;
+};
 
 const User = Users.model("Users", userData);
 

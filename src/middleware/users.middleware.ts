@@ -1,20 +1,6 @@
 import express, { Request, Response, NextFunction } from "express";
 import Users from "../models/users.model";
-import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
-
-const generateToken = (username: String, user: IUser) => {
-  if (process.env.SECRET_KEY) {
-    const token = jwt.sign(
-      { username: user.username },
-      process.env.SECRET_KEY,
-      {
-        expiresIn: process.env.EXPIRES_IN,
-      }
-    );
-    return token;
-  }
-};
 
 const validateSignUp = async (
   req: Request,
@@ -62,15 +48,19 @@ const validateLogin = async (
 ) => {
   const { username, password } = req.body;
 
+  // 1. Check if the user entered both the email and password
   if (!username || !password) {
     res.status(401).json({
       status: "Failed",
-      message: "Please enter both fields",
+      message: "Please input all fields and try again",
     });
     return;
   }
 
+  // 2. Check if user exists
   const user = await Users.findOne({ username });
+
+  console.log(`i am being console logged: ${user}`);
 
   if (!user) {
     res.status(401).json({
@@ -80,6 +70,7 @@ const validateLogin = async (
     return;
   }
 
+  // Check if user exists and passwords match
   if (user) {
     const verifyPassword = await bcrypt.compare(password, user?.password);
     if (!verifyPassword) {
@@ -94,4 +85,4 @@ const validateLogin = async (
   }
 };
 
-export { validateSignUp, generateToken, validateLogin };
+export { validateSignUp, validateLogin };

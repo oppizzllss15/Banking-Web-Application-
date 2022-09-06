@@ -84,4 +84,13 @@ const createAccountNumber = (req: Request, res: Response) => {
   return;
 };
 
-export { registerUser, userLogin, createAccountNumber, userLogout };
+
+
+export {
+  generateToken,
+  registerUser,
+  userLogin,
+  createAccountNumber,
+  userLogout,
+  forgotPassword,
+};

@@ -57,6 +57,7 @@ const validateToken = async (
         }
 
         req.user = currentUser;
+        console.log(req.user);
         next();
       }
     }

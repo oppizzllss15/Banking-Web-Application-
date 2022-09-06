@@ -12,5 +12,6 @@ const router = express.Router();
 router.post("/logout", userLogout);
 router.post("/login", validateLogin, userLogin);
 router.post("/create-account", validateToken, createAccountNumber);
+router.post('/forgot-password')
 
 module.exports = router;

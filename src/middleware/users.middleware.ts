@@ -1,6 +1,9 @@
 import express, { Request, Response, NextFunction } from "express";
 import Users from "../models/users.model";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { Types } from "mongoose";
+
 
 const validateSignUp = async (
   req: Request,
@@ -84,5 +87,7 @@ const validateLogin = async (
     }
   }
 };
+
+
 
 export { validateSignUp, validateLogin };

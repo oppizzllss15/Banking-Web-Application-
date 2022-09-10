@@ -58,6 +58,9 @@ const userData = new Users.Schema(
     passwordChanged: {
       type: Date,
     },
+    resetToken: {
+      type: String,
+    }
   },
   {
     timestamps: true,

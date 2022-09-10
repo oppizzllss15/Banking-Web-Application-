@@ -1,4 +1,3 @@
-
 // interface IUser {
 //   _id?: mongoose.Types.ObjectId;
 //   firstname: String;
@@ -13,3 +12,10 @@
 //   password?: String;
 //   passwordChanged?: Date;
 // }
+
+interface IEmail {
+  from?: String;
+  email?: String;
+  subject?: String;
+  message?: String;
+}

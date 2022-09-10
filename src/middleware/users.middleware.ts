@@ -2,8 +2,7 @@ import express, { Request, Response, NextFunction } from "express";
 import Users from "../models/users.model";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { Types } from "mongoose";
-
+import { generatePasswordResetToken } from "../controllers/users.controller";
 
 const validateSignUp = async (
   req: Request,
@@ -88,6 +87,26 @@ const validateLogin = async (
   }
 };
 
+const forgotPasswordHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { email } = req.body;
 
+  // 1. verify user exists
+  const user = await Users.findOne({ email });
 
-export { validateSignUp, validateLogin };
+  // 2. If user exists send reset token to user
+  if (user) {
+    req.user = user;
+    next();
+  } else
+    res.status(404).json({
+      status: "Failed",
+      message: "Please check email and try again!",
+    });
+  return;
+};
+
+export { validateSignUp, validateLogin, forgotPasswordHandler };

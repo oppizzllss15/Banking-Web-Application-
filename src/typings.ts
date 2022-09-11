@@ -19,3 +19,8 @@ interface IEmail {
   subject?: String;
   message?: String;
 }
+
+interface IError {
+  message: String;
+  name: String;
+}

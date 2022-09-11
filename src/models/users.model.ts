@@ -52,7 +52,7 @@ const userData = new Users.Schema(
       required: [true, "please enter a password"],
     },
     "confirm password": {
-      type: String,
+      type: String || undefined,
       required: true,
     },
     passwordChanged: {

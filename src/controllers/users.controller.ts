@@ -1,8 +1,10 @@
 import express, { Request, Response, NextFunction } from "express";
+import bcrypt from "bcryptjs";
 import Users from "../models/users.model";
 import jwt from "jsonwebtoken";
 import { Types } from "mongoose";
 import { sendEmail } from "../utils/email";
+import User from "../models/users.model";
 interface IUser {
   _id?: Types.ObjectId;
   firstname: String;
@@ -103,6 +105,7 @@ const userLogout = async (req: Request, res: Response) => {
     token,
     message: "Successfully logged out",
   });
+  return;
 };
 
 const createAccountNumber = (req: Request, res: Response) => {
@@ -119,28 +122,37 @@ const createAccountNumber = (req: Request, res: Response) => {
 };
 
 const forgotPassword = async (req: Request, res: Response) => {
+  // 1. Get users details from user object
+
   const { _id: id, email, password } = req.user;
 
+  // 2. set payload
   const payload = {
     id,
     email,
   };
 
+  // 3. add user password to env secret
   const secret = process.env.PASSWORD_RESET_KEY + password;
 
+  // 4. set token
   const resetToken: string | undefined = jwt.sign(payload, secret, {
     expiresIn: process.env.PASSWORD_RESET_KEY_EXPIRES_IN,
   });
 
+  // 5. Set reset url
   const resetURL = `${req.protocol}://${req.get(
     "host"
-  )}/forgot-password/${id}/${resetToken}`;
+  )}/devbank-user/reset-password/${id}/${resetToken}`;
 
+  console.log(resetURL);
+
+  // 6. deliver message
   const message = `Forgot your password? click on the link to reset your password. Link valid for 10 minutes.\n\n${resetURL}.\n\nWasn't you? Pls ignore this email.`;
   try {
     await sendEmail({
       email,
-      subject: "Password Reset Token",
+      subject: "Password Reset",
       message,
     });
 
@@ -161,6 +173,82 @@ const forgotPassword = async (req: Request, res: Response) => {
   }
 };
 
+const getResetPassword = async (req: Request, res: Response) => {
+  const { id, token } = req.params;
+
+  const user = await User.findById({ _id: id });
+
+  if (user) {
+    const secret = process.env.PASSWORD_RESET_KEY + user.password;
+
+    try {
+      const verifyToken = jwt.verify(token, secret);
+
+      res.status(200).json({
+        status: "Successful",
+        message: "Enter your new password",
+      });
+      return;
+    } catch (err) {
+      console.log(err);
+    }
+  } else {
+    res.status(400).json({
+      status: "Failed",
+      message: `Invalid id: ${id}`,
+    });
+    return;
+  }
+
+  res.status(200).json({
+    status: "Successful",
+    message: `Welcome to password reset page.`,
+    data: {
+      id,
+      token,
+    },
+  });
+  return;
+};
+
+const resetPassword = async (req: Request, res: Response) => {
+  const { id, token } = req.params;
+  const { password } = req.body;
+
+  const user = await User.findById({ _id: id });
+
+  if (user) {
+    const secret = process.env.PASSWORD_RESET_KEY + user.password;
+
+    try {
+      const verifyToken = jwt.verify(token, secret);
+
+      const hashPassword = await bcrypt.hash(password, 12);
+
+      await User.updateOne({_id: id}, {password: hashPassword});
+
+      res.status(200).json({
+        status: "Successful",
+        message: "Password successfully updated",
+      });
+
+      return;
+    } catch (err) {
+      res.status(400).json({
+        status: "Failed",
+        message: "Something went wrong",
+      });
+      return;
+    }
+  } else {
+    res.status(400).json({
+      status: "Failed",
+      message: `Invalid id: ${id}`,
+    });
+    return;
+  }
+};
+
 export {
   generatePasswordResetToken,
   generateToken,
@@ -169,4 +257,6 @@ export {
   createAccountNumber,
   userLogout,
   forgotPassword,
+  getResetPassword,
+  resetPassword,
 };

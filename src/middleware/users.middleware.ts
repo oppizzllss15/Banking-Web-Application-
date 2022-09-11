@@ -62,8 +62,6 @@ const validateLogin = async (
   // 2. Check if user exists
   const user = await Users.findOne({ username });
 
-  console.log(`i am being console logged: ${user}`);
-
   if (!user) {
     res.status(401).json({
       status: "Failed",
@@ -109,4 +107,36 @@ const forgotPasswordHandler = async (
   return;
 };
 
-export { validateSignUp, validateLogin, forgotPasswordHandler };
+const resetPasswordHandler = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { password, "confirm password": confirmPassword } = req.body;
+  console.log(password);
+  console.log(confirmPassword);
+  if (!password || !confirmPassword) {
+    res.status(400).json({
+      status: "Failed",
+      message: "input both fields",
+    });
+    return;
+  }
+
+  if (password !== confirmPassword) {
+    res.status(400).json({
+      status: "Failed",
+      message: "Passwords dont match",
+    });
+    return;
+  }
+
+  next();
+};
+
+export {
+  validateSignUp,
+  validateLogin,
+  forgotPasswordHandler,
+  resetPasswordHandler,
+};

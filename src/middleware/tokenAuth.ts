@@ -38,7 +38,6 @@ const validateToken = async (
           { password: 0 }
         );
 
-        console.log(currentUser);
         if (!currentUser) {
           res.status(401).json({
             status: "Failed",
@@ -57,7 +56,7 @@ const validateToken = async (
         }
 
         req.user = currentUser;
-        console.log(req.user);
+      
         next();
       }
     }

@@ -84,6 +84,7 @@ const userLogin = async (req: Request, res: Response) => {
 
     if (user) {
       const token = generateToken(user._id);
+      res.cookie("token", token);
       res.cookie("Id", user._id);
       res.status(200).json({
         status: "Successful",
@@ -225,7 +226,13 @@ const resetPassword = async (req: Request, res: Response) => {
 
       const hashPassword = await bcrypt.hash(password, 12);
 
-      await User.updateOne({_id: id}, {password: hashPassword});
+      await User.updateOne(
+        { _id: id },
+        { password: hashPassword, passwordChanged: Date.now() },
+        {
+          password: 0,
+        }
+      );
 
       res.status(200).json({
         status: "Successful",
@@ -249,6 +256,25 @@ const resetPassword = async (req: Request, res: Response) => {
   }
 };
 
+const updatePassword = async (req: Request, res: Response) => {
+  const { "new password": newPassword, "confirm password": confirmPassword } =
+    req.body;
+
+  const genSalt = await bcrypt.genSalt(12);
+
+  const hashPassword = await bcrypt.hash(newPassword, genSalt);
+
+  const updateUser = await User.updateOne(
+    { _id: req.user._id },
+    { password: hashPassword, passwordChanged: Date.now() }
+  );
+
+  res.status(200).json({
+    message: "You have successfully updated your password",
+  });
+  return;
+};
+
 export {
   generatePasswordResetToken,
   generateToken,
@@ -259,4 +285,5 @@ export {
   forgotPassword,
   getResetPassword,
   resetPassword,
+  updatePassword,
 };

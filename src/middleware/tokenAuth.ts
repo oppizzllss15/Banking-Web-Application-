@@ -33,10 +33,7 @@ const validateToken = async (
       verified = jwt.verify(token, process.env.SECRET_KEY);
 
       if (verified instanceof Object) {
-        const currentUser = await User.findOne(
-          { _id: verified.id },
-          { password: 0 }
-        );
+        const currentUser = await User.findOne({ _id: verified.id });
 
         if (!currentUser) {
           res.status(401).json({
@@ -56,12 +53,16 @@ const validateToken = async (
         }
 
         req.user = currentUser;
-      
+
         next();
       }
     }
   } catch (err) {
-    console.error(err);
+    res.status(400).json({
+      status: "Failed",
+      message: err,
+    });
+    return;
   }
 };
 

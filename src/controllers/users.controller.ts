@@ -5,6 +5,8 @@ import jwt from "jsonwebtoken";
 import { Types } from "mongoose";
 import { sendEmail } from "../utils/email";
 import User from "../models/users.model";
+import { generateAccountNumber } from "./account.controller";
+import BankAccount from "../models/account.model";
 interface IUser {
   _id?: Types.ObjectId;
   firstname: String;
@@ -18,6 +20,7 @@ interface IUser {
   user_status?: String;
   password?: String;
   passwordChanged?: Date;
+  pin?: Number;
 }
 
 const generatePasswordResetToken = (user: IUser) => {
@@ -46,21 +49,13 @@ const generateToken = (id: Object) => {
   }
 };
 
-const generateAccountNumber = (length: number) => {
-  let num = "";
-  for (let i = 0; i < length; i++) {
-    num = num += parseInt((Math.random() * 10).toString());
-  }
-
-  const number = Number(num);
-  return number;
-};
-
 const registerUser = async (req: Request, res: Response) => {
   try {
     const { username } = req.body;
 
-    const newUser = await Users.create(req.body);
+    const newUser: IUser = await Users.create(req.body);
+
+    const accNum = generateAccountNumber(10);
 
     res.status(201).json({
       status: "successful",
@@ -70,6 +65,10 @@ const registerUser = async (req: Request, res: Response) => {
       },
     });
 
+    const userAccount = await BankAccount.create({
+      "account owner": newUser._id,
+      "account number": accNum,
+    });
     return;
   } catch (err) {
     console.log(err);
@@ -105,19 +104,6 @@ const userLogout = async (req: Request, res: Response) => {
     status: "Successful",
     token,
     message: "Successfully logged out",
-  });
-  return;
-};
-
-const createAccountNumber = (req: Request, res: Response) => {
-  const accountNumber = generateAccountNumber(10);
-  console.log(accountNumber);
-  res.status(201).json({
-    status: "Successful",
-    message: "Account successfuly created",
-    data: {
-      accountNumber,
-    },
   });
   return;
 };
@@ -280,7 +266,6 @@ export {
   generateToken,
   registerUser,
   userLogin,
-  createAccountNumber,
   userLogout,
   forgotPassword,
   getResetPassword,

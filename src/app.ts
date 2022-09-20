@@ -1,3 +1,5 @@
+import { unavailableRoutes } from "./middleware/errorHandler";
+
 const createError = require("http-errors");
 const path = require("path");
 const express = require("express");
@@ -23,4 +25,5 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use("/devbank", indexRouter);
 app.use("/devbank-user", usersRouter);
 
+app.all("*", unavailableRoutes);
 module.exports = app;

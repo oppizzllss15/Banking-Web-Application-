@@ -1,5 +1,5 @@
+import { transferAmount } from "../controllers/account.controller";
 import {
-  createAccountNumber,
   forgotPassword,
   userLogin,
   userLogout,
@@ -23,9 +23,15 @@ const router = express.Router();
 router.get("/reset-password/:id/:token", getResetPassword);
 router.post("/logout", userLogout);
 router.post("/login", validateLogin, userLogin);
-router.post("/create-account", validateToken, createAccountNumber);
+// router.post("/create-account", validateToken, createAccountNumber);
 router.post("/forgot-password", forgotPasswordHandler, forgotPassword);
 router.post("/reset-password/:id/:token", resetPasswordHandler, resetPassword);
-router.post("/update-password",validateToken, updatePasswordHandler, updatePassword);
+router.post(
+  "/update-password",
+  validateToken,
+  updatePasswordHandler,
+  updatePassword
+);
+router.post("/transfer", validateToken, transferAmount);
 
 module.exports = router;

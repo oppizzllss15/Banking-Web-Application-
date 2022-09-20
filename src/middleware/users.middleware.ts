@@ -170,12 +170,6 @@ const updatePasswordHandler = async (
   if (user && verify) {
     next();
 
-    // else {
-    //   res.status(400).json({
-    //     status: "Failed",
-    //     message: "Something went wrong"
-    //   });
-    // }
   } else {
     res.status(400).json({
       status: "Failed",

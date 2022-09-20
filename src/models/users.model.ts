@@ -55,12 +55,17 @@ const userData = new Users.Schema(
       type: String || undefined,
       required: true,
     },
+    pin: {
+      type: Number,
+      required: [true, "Please enter a 4 digit transaction pin"],
+      max: [9999, "Please enter a 4 digit pin"],
+    },
     passwordChanged: {
       type: Date,
     },
     resetToken: {
       type: String,
-    }
+    },
   },
   {
     timestamps: true,
